@@ -1,0 +1,19 @@
+# Paths are relative to the repo root unless absolute or ~-prefixed.
+model_dir: models/LRS3_V_WER19.1      # Auto-AVSR visual-only, LRS3 WER 19.1%
+lm_dir: models/lm_en_subword          # subword LM, used by dictation only
+face_model: models/mediapipe/blaze_face_short_range.tflite
+data_dir: data                        # enrolment clips (mouth crops only), calibration; git-ignored
+camera: 0                             # /dev/video0 = integrated laptop camera
+clip_seconds: 2.5                     # enrolment window
+threads: null                         # torch CPU threads; null = torch default
+hermes_bin: hermes
+hermes_timeout: 300
+
+portal:
+  host: tailscale        # "tailscale" = this host's Tailscale IPv4 (tailnet only); or an IP like 127.0.0.1
+  port: 8810
+  script_reps: 10         # times each command appears in the reading script
+  whisper_model: small.en  # faster-whisper, CPU int8; already cached in ~/.cache/huggingface
+  keep_video: false        # delete the uploaded video after processing (mouth crops are kept)
+  idle_unload_seconds: 300 # free the lip model's ~2 GB RAM when idle
+  idle_shutdown_minutes: 30 # the whole portal exits after this long with no requests (0 = never)

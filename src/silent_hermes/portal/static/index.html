@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lip Trainer</title>
+<style>
+:root{--ink:#101828;--body:#344054;--muted:#667085;--rule:#D0D5DD;--canvas:#FFFFFF;--subtle:#F8FAFC;
+  --accent:#175CD3;--on-accent:#FFFFFF;--ok:#19704D;--warn:#8A5A00;--bad:#B42318}
+@media (prefers-color-scheme:dark){:root{--ink:#F2F4F7;--body:#D0D5DD;--muted:#98A2B3;--rule:#344054;--canvas:#0C111D;
+  --subtle:#161B26;--accent:#53B1FD;--on-accent:#0C111D;--ok:#47CD89;--warn:#FDB022;--bad:#F97066}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--canvas);color:var(--body);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",sans-serif}
+main{max-width:680px;margin:0 auto;padding:16px 16px calc(96px + env(safe-area-inset-bottom))}
+h1{font-size:20px;color:var(--ink);margin:4px 0 2px}
+h2{font-size:15px;color:var(--ink);margin:24px 0 8px;text-transform:uppercase;letter-spacing:.04em}
+.muted{color:var(--muted);font-size:13px}
+ol.script{list-style:none;margin:0;padding:0}
+ol.script li{display:grid;grid-template-columns:36px 1fr;gap:8px;padding:9px 0;border-top:1px solid var(--rule);font-size:21px;color:var(--ink);line-height:1.3}
+ol.script li span{color:var(--muted);font-size:13px;padding-top:5px;text-align:right}
+ol.script li.filler{color:var(--body)}
+.dock{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  background:var(--canvas);border-top:1px solid var(--rule)}
+.dock .in{max-width:680px;margin:0 auto}
+.rec{display:block;text-align:center;padding:15px;border-radius:12px;background:var(--accent);color:var(--on-accent);font-weight:650;font-size:18px;cursor:pointer}
+.rec input{display:none}
+.bar{height:5px;border-radius:3px;background:var(--rule);margin-top:8px;overflow:hidden;display:none}
+.bar i{display:block;height:100%;width:0;background:var(--accent)}
+.up{border-top:1px solid var(--rule);padding:12px 0}
+.up .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.up .what{color:var(--ink);font-weight:600}
+.good{color:var(--ok)}.warnc{color:var(--warn)}.badc{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin-top:6px}
+td{padding:3px 0;border-bottom:1px solid var(--rule)}td.n{text-align:right;white-space:nowrap;padding-left:10px}
+button.del{font:inherit;font-size:13px;padding:6px 10px;border-radius:8px;border:1px solid var(--rule);background:var(--canvas);color:var(--body);margin-top:8px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Lip Trainer</h1>
+  <div class="muted" id="status">loading…</div>
+
+  <h2>Uploads</h2>
+  <div id="ups"><div class="muted">Nothing uploaded yet.</div></div>
+
+  <h2>Script</h2>
+  <p class="muted">Read it out loud on video, one line at a time, short pause between lines, mouth closed in the pauses.
+    Order doesn't matter, and you can split it over several videos. Phone at arm's length, face lit from the front.</p>
+  <ol class="script" id="script"></ol>
+</main>
+<div class="dock"><div class="in">
+  <label class="rec">Record and upload<input type="file" id="file" accept="video/*" capture="user"></label>
+  <div class="bar" id="bar"><i></i></div>
+  <div class="muted" id="upmsg" style="margin-top:4px"></div>
+</div></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let pollT=null;
+async function j(u,o){const r=await fetch(u,o);if(!r.ok)throw new Error((await r.json().catch(()=>({detail:r.statusText}))).detail);return r.json()}
+
+$("#file").onchange=e=>{const f=e.target.files[0];if(!f)return;
+  const fd=new FormData();fd.append("file",f);
+  const x=new XMLHttpRequest();x.open("POST","/api/upload");
+  $("#bar").style.display="block";$("#upmsg").textContent=`uploading ${(f.size/1048576).toFixed(0)} MB…`;
+  x.upload.onprogress=p=>{if(p.lengthComputable)$("#bar i").style.width=(100*p.loaded/p.total)+"%"};
+  x.onload=()=>{$("#bar").style.display="none";$("#bar i").style.width=0;e.target.value="";
+    $("#upmsg").textContent=x.status===200?"uploaded, processing (a few minutes)":"upload failed: "+x.responseText;refresh()};
+  x.onerror=()=>{$("#upmsg").textContent="upload failed (network)";$("#bar").style.display="none"};
+  x.send(fd)};
+
+function upHTML(u){
+  let h=`<div class="up"><div class="top"><span class="what">${esc(u.created?.slice(5,16))}</span><span class="muted">${u.duration?(u.duration/60).toFixed(1)+" min":""}</span></div>`;
+  if(u.status==="error") h+=`<div class="badc">${esc(u.error)}</div>`;
+  else if(u.status!=="done") h+=`<div class="muted">${esc(u.stage||u.status)}…</div>`;
+  else{
+    h+=`<div class="good">${u.clips_kept} clips kept from ${u.lines_heard} lines heard</div>`;
+    for(const t of u.quality?.tips||[]) h+=`<div class="warnc">${esc(t)}</div>`;
+    h+=`<table>`+u.summary.filter(r=>r.found).map(r=>`<tr><td>${esc(r.phrase)}</td><td class="n">${r.found} found${r.readable!=null?` · lips read ${r.readable}/${r.found}`:""}</td></tr>`).join("")+`</table>`;
+  }
+  if(!["queued","processing","uploading"].includes(u.status)) h+=`<button class="del" onclick="del('${u.id}')">Delete (removes its clips)</button>`;
+  return h+"</div>";
+}
+async function del(id){if(!confirm("Delete this upload and the clips it added?"))return;
+  try{const r=await j(`/api/uploads/${id}`,{method:"DELETE"});$("#upmsg").textContent=`removed ${r.clips_removed} clips`}catch(e){alert(e.message)}refresh()}
+
+async function refresh(){
+  clearTimeout(pollT);
+  try{
+    const [st,ups]=await Promise.all([j("/api/status"),j("/api/uploads")]);
+    const n=st.enrolled||{},left=st.commands.filter(c=>(n[c.id]||0)<st.target);
+    $("#status").textContent=(st.queue?`${st.queue} processing · `:"")+
+      (left.length?`${st.commands.length-left.length}/${st.commands.length} commands have ${st.target}+ clips`:`all commands have ${st.target}+ clips: ready for eval`)+
+      ` · ${n._none||0} filler clips`;
+    $("#ups").innerHTML=ups.length?ups.map(upHTML).join(""):'<div class="muted">Nothing uploaded yet.</div>';
+    if(ups.some(u=>["queued","processing","uploading"].includes(u.status)))pollT=setTimeout(refresh,4000);
+  }catch(e){$("#status").textContent="server unreachable: "+e.message;pollT=setTimeout(refresh,8000)}
+}
+(async()=>{
+  const lines=await j("/api/script");
+  $("#script").innerHTML=lines.map(l=>`<li class="${l.id==="_none"?"filler":""}"><span>${l.n}</span>${esc(l.text)}</li>`).join("");
+  refresh();
+})();
+</script>
+</body>
+</html>

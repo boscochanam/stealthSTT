@@ -1,0 +1,85 @@
+{
+  "n_clips": 190,
+  "n_commands": 16,
+  "top1_phrase_only": 0.8375,
+  "top1_template_only": 0.91875,
+  "top1_fused": 0.91875,
+  "accept_rate": 0.8625,
+  "false_accept_rate": 0.005263157894736842,
+  "calibration": {
+    "w_phrase": 0,
+    "w_template": 2,
+    "t_phrase": 0.1,
+    "t_template": 0.05,
+    "k": 3,
+    "p_min": 0.5499999999999999,
+    "margin": 0.0
+  },
+  "confusions": [
+    [
+      "bin_red",
+      "bin_white",
+      2
+    ],
+    [
+      "lay_red",
+      "lay_white",
+      2
+    ],
+    [
+      "place_red",
+      "place_white",
+      2
+    ],
+    [
+      "set_red",
+      "set_white",
+      2
+    ],
+    [
+      "lay_green",
+      "lay_red",
+      1
+    ],
+    [
+      "lay_white",
+      "lay_red",
+      1
+    ],
+    [
+      "place_white",
+      "place_red",
+      1
+    ],
+    [
+      "set_red",
+      "lay_red",
+      1
+    ],
+    [
+      "set_white",
+      "set_red",
+      1
+    ]
+  ],
+  "speaker": "s1",
+  "clips_per_command": {
+    "bin_blue": 10,
+    "bin_green": 10,
+    "bin_red": 10,
+    "bin_white": 10,
+    "lay_blue": 10,
+    "lay_green": 10,
+    "lay_red": 10,
+    "lay_white": 10,
+    "place_blue": 10,
+    "place_green": 10,
+    "place_red": 10,
+    "place_white": 10,
+    "set_blue": 10,
+    "set_green": 10,
+    "set_red": 10,
+    "set_white": 10
+  },
+  "negatives": 30
+}

@@ -1,0 +1,28 @@
+[project]
+name = "silent-hermes"
+version = "0.1.0"
+description = "Silent lip-read commands for Hermes, trained on one speaker"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "torch>=2.4", "torchvision", "torchaudio",
+  "opencv-python-headless>=4.9", "mediapipe>=0.10.20",
+  "numpy", "scipy", "scikit-image", "av", "sentencepiece", "pyyaml",
+  "setuptools", "six",
+  "fastapi", "uvicorn[standard]", "python-multipart", "faster-whisper",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+silent-hermes = "silent_hermes.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+silent_hermes = ["assets/*", "portal/static/*"]

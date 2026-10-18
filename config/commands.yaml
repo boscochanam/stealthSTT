@@ -1,0 +1,52 @@
+# Starter command set. EDIT THIS before enrolling: phrases are what you mouth, prompts are
+# what Hermes receives. Re-enrol a command after changing its phrase.
+#
+# Phrase rules (lip reading sees shapes, not sounds):
+#  - 3+ syllables, and different MOUTH SHAPES from every other phrase.
+#  - p/b/m look the same; f/v look the same; t/d/n/s/z look alike; k/g are nearly invisible.
+#    "turn on the lights" vs "turn off the lights" differ only by o-n vs o-f: risky pair, kept
+#    here on purpose so eval shows whether your lips separate them.
+#  - confirm: true for anything with a side effect. Dictation always confirms.
+commands:
+  - id: status
+    phrase: "hermes status report"
+    action: {type: hermes, prompt: "Give me a three-line status: today's calendar, open kanban blockers, anything urgent."}
+
+  - id: gre_next
+    phrase: "next gre task"
+    action: {type: hermes, prompt: "What is my next GRE task today? One line."}
+
+  - id: calendar
+    phrase: "what is on my calendar"
+    action: {type: hermes, prompt: "List my calendar events for today, times in IST."}
+
+  - id: messages
+    phrase: "read my latest messages"
+    action: {type: hermes, prompt: "Summarise my unread messages from today in at most five bullets."}
+
+  - id: weather
+    phrase: "how is the weather outside"
+    action: {type: hermes, prompt: "Weather where I live right now, one line."}
+
+  - id: lights_off
+    phrase: "turn off the lights"
+    confirm: true
+    action: {type: hermes, prompt: "Turn off the lights via Home Assistant and confirm the state."}
+
+  - id: lights_on
+    phrase: "turn on the lights"
+    confirm: true
+    action: {type: hermes, prompt: "Turn on the lights via Home Assistant and confirm the state."}
+
+  - id: ac_off
+    phrase: "switch off the air conditioner"
+    confirm: true
+    action: {type: hermes, prompt: "Switch off the AC via Home Assistant and confirm the state."}
+
+  - id: note
+    phrase: "take a quick note"
+    action: {type: dictate, prompt_template: "Save this as a quick note in my inbox, verbatim: {text}"}
+
+  - id: ask
+    phrase: "question for hermes"
+    action: {type: dictate, prompt_template: "{text}"}
